@@ -434,7 +434,7 @@ export const billingApi = {
 export const healthApi = {
   async check(): Promise<HealthCheckResponse | null> {
     const result = await backendApi.get(
-      '/health',
+      '/api/health',
       {
         errorContext: { operation: 'check system health', resource: 'system status' },
         timeout: 10000,
