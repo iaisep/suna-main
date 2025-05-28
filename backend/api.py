@@ -14,6 +14,13 @@ import uuid
 import time
 from collections import OrderedDict
 
+import httpx
+transport = httpx.AsyncHTTPTransport(verify=False)
+httpx_client = httpx.AsyncClient(transport=transport)
+import services.supabase
+services.supabase.httpx_client = httpx_client
+
+
 # Import the agent API module
 from agent import api as agent_api
 from sandbox import api as sandbox_api
