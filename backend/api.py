@@ -13,21 +13,29 @@ from utils.logger import logger
 import uuid
 import time
 from collections import OrderedDict
+# Load environment variables (these will be available through config)
+load_dotenv()
 
 import httpx
+try:
+    httpx.get("https://universidadisep.com", verify=False)
+except Exception as e:
+    logger.warning(f"SSL verification bypass triggered for universidadisep.com: {e}")
+
+# Global HTTPX client with SSL verification disabled
 transport = httpx.AsyncHTTPTransport(verify=False)
 httpx_client = httpx.AsyncClient(transport=transport)
+
+# Inject the client into Supabase service
 import services.supabase
 services.supabase.httpx_client = httpx_client
-
 
 # Import the agent API module
 from agent import api as agent_api
 from sandbox import api as sandbox_api
 from services import billing as billing_api
 
-# Load environment variables (these will be available through config)
-load_dotenv()
+
 
 # Initialize managers
 db = DBConnection()
