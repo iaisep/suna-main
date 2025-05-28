@@ -958,3 +958,29 @@ async def get_available_models(
     except Exception as e:
         logger.error(f"Error getting available models: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error getting available models: {str(e)}")
+
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from fastapi import Depends
+
+# Modelo para suscripción
+class SubscriptionInfo(BaseModel):
+    tier: str
+    active: bool
+
+# Ruta GET /billing/subscription
+@router.get("/subscription", response_model=SubscriptionInfo)
+async def get_subscription(user_id: str = Depends(get_current_user_id_from_jwt)):
+    # Aquí deberías consultar tu base de datos o integración real con Stripe
+    return SubscriptionInfo(tier="free", active=True)
+
+# Ruta GET /billing/available-models
+@router.get("/available-models")
+async def get_available_models():
+    return {
+        "models": [
+            {"name": "gpt-3.5-turbo", "tier": "free"},
+            {"name": "gpt-4", "tier": "pro"},
+            {"name": "claude-3", "tier": "enterprise"},
+        ]
+    }
