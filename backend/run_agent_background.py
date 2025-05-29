@@ -19,8 +19,8 @@ from pika.credentials import PlainCredentials
 
 rabbitmq_host = os.getenv("RABBITMQ_HOST", "rabbitmq")
 rabbitmq_port = int(os.getenv("RABBITMQ_PORT", 5672))
-rabbitmq_user = os.getenv("RABBITMQ_USER", "guest")
-rabbitmq_pass = os.getenv("RABBITMQ_PASSWORD", "guest")
+rabbitmq_user = os.getenv["RABBITMQ_USER"]
+rabbitmq_pass = os.getenv["RABBITMQ_PASSWORD"]
 
 rabbitmq_broker = RabbitmqBroker(
     host=rabbitmq_host,
