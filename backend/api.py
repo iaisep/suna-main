@@ -13,6 +13,8 @@ from utils.logger import logger
 import uuid
 import time
 from collections import OrderedDict
+import patch_httpx_ssl  # 👈 Esto parchea httpx para todo el sistema
+
 # Load environment variables (these will be available through config)
 load_dotenv()
 
