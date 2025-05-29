@@ -18,7 +18,10 @@ from services.langfuse import langfuse
 
 rabbitmq_host = os.getenv('RABBITMQ_HOST', 'rabbitmq')
 rabbitmq_port = int(os.getenv('RABBITMQ_PORT', 5672))
-rabbitmq_broker = RabbitmqBroker(host=rabbitmq_host, port=rabbitmq_port, middleware=[dramatiq.middleware.AsyncIO()])
+rabbitmq_user = os.getenv('RABBITMQ_USER', 'guest')
+rabbitmq_password = os.getenv('RABBITMQ_PASSWORD', 'guest')
+rabbitmq_broker = RabbitmqBroker(host=rabbitmq_host,port=rabbitmq_port,virtual_host="/",username=rabbitmq_user,
+    password=rabbitmq_password, middleware=[dramatiq.middleware.AsyncIO()])
 dramatiq.set_broker(rabbitmq_broker)
 
 _initialized = False
