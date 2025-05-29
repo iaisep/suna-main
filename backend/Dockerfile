@@ -8,10 +8,11 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies including netcat
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
+    netcat \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user and set up directories
@@ -32,15 +33,11 @@ COPY --chown=appuser:appuser . .
 # Expose the port the app runs on
 EXPOSE 8000
 
-# Calculate optimal worker count based on 16 vCPUs
-# Using (2*CPU)+1 formula for CPU-bound applications
+# Gunicorn configuration
 ENV WORKERS=33
 ENV THREADS=2
 ENV WORKER_CONNECTIONS=2000
 
-EXPOSE 8000
-
-# Gunicorn configuration
 CMD ["sh", "-c", "gunicorn api:app \
      --workers $WORKERS \
      --worker-class uvicorn.workers.UvicornWorker \
