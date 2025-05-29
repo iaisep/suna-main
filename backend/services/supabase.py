@@ -45,12 +45,8 @@ class DBConnection:
             http_client = httpx.AsyncClient(verify=False)
 
             # Crear cliente Supabase con http_client personalizado
-            self._client = await create_async_client(
-                supabase_url,
-                supabase_key,
-                options={"http_client": http_client}
-            )
-
+            self._client = await create_async_client(supabase_url, supabase_key)
+            self._client._client = httpx.AsyncClient(verify=False) 
             self._initialized = True
             key_type = "SERVICE_ROLE_KEY" if config.SUPABASE_SERVICE_ROLE_KEY else "ANON_KEY"
             logger.debug(f"Database connection initialized with Supabase using {key_type}")
