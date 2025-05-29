@@ -16,20 +16,17 @@ from dramatiq.brokers.rabbitmq import RabbitmqBroker
 import os
 from services.langfuse import langfuse
 
-rabbitmq_host = os.getenv('RABBITMQ_HOST', 'rabbitmq')
-rabbitmq_port = int(os.getenv('RABBITMQ_PORT', 5672))
-rabbitmq_user = os.getenv('RABBITMQ_USER', 'guest')
-rabbitmq_password = os.getenv('RABBITMQ_PASSWORD', 'guest')
+rabbitmq_user = os.getenv("RABBITMQ_USER", "guest")
+rabbitmq_pass = os.getenv("RABBITMQ_PASSWORD", "guest")
+rabbitmq_host = os.getenv("RABBITMQ_HOST", "rabbitmq")
+rabbitmq_port = os.getenv("RABBITMQ_PORT", "5672")
+
+amqp_url = f"amqp://{rabbitmq_user}:{rabbitmq_pass}@{rabbitmq_host}:{rabbitmq_port}/"
+
 rabbitmq_broker = RabbitmqBroker(
-    host=rabbitmq_host,
-    port=rabbitmq_port,
-    virtual_host="/",
-    username=rabbitmq_user,
-    password=rabbitmq_password,
+    url=amqp_url,
     middleware=[dramatiq.middleware.AsyncIO()]
 )
-
-dramatiq.set_broker(rabbitmq_broker)
 
 _initialized = False
 db = DBConnection()
