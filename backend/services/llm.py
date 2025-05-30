@@ -251,7 +251,8 @@ async def make_llm_api_call(
     top_p: Optional[float] = None,
     model_id: Optional[str] = None,
     enable_thinking: Optional[bool] = False,
-    reasoning_effort: Optional[str] = 'low'
+    reasoning_effort: Optional[str] = 'low',
+    run_id: Optional[str] = None,  # <-- Añade este argumento
 ) -> Union[Dict[str, Any], AsyncGenerator]:
     """
     Make an API call to a language model using LiteLLM.
@@ -311,10 +312,11 @@ async def make_llm_api_call(
             logger.debug(f"Successfully received API response from {model_name}")
             logger.debug(f"Response: {response}")
 
-            logger.info(f"Respuesta generada por LLM para run : {response}")
-            redis_client = await redis_service.get_client()
-            await redis_client.rpush(f"agent_run:{run_id}:responses", response)
-            logger.info(f"Respuesta guardada en Redis para run {run_id}")
+            logger.info(f"Respuesta generada por LLM para run {run_id}: {response}")
+            if run_id:
+                redis_client = await redis_service.get_client()
+                await redis_client.rpush(f"agent_run:{run_id}:responses", response)
+                logger.info(f"Respuesta guardada en Redis para run {run_id}")
 
             return response
 
