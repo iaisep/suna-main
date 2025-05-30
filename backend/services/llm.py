@@ -310,7 +310,7 @@ async def make_llm_api_call(
             logger.debug(f"Successfully received API response from {model_name}")
             logger.debug(f"Response: {response}")
 
-            logger.info(f"Respuesta generada por LLM para run {run_id}: {response}")
+            logger.info(f"Respuesta generada por LLM para run : {response}")
             await redis.rpush(f"agent_run:{run_id}:responses", response)
             logger.info(f"Respuesta guardada en Redis para run {run_id}")
 
