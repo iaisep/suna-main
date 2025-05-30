@@ -121,7 +121,7 @@ async def log_requests_middleware(request: Request, call_next):
         raise
 
 # Define allowed origins based on environment
-allowed_origins = ["https://www.suna.so", "https://suna.so", "http://localhost:3000","https://callout.developuisep.online"]
+allowed_origins = ["https://www.suna.so", "https://suna.so", "http://localhost:3000","https://sunafront.universidadisep.com"]
 allow_origin_regex = None
 
 # Add staging-specific origins
