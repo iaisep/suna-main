@@ -623,59 +623,33 @@ async def initiate_agent_with_files(
 
         # Trigger Background Naming Task
         asyncio.create_task(generate_and_update_project_name(project_id=project_id, prompt=prompt))
+        # 3. Create Sandbox 
+        sandbox_id = "80f034f1-c388-4b08-9115-f19a45b3331f"
+        sandbox_pass = "no_importa"  # Si es necesario puedes dejar el campo vacío o fijo
+        logger.info(f"Created new sandbox {sandbox_id} for project {project_id}")
 
-        # 3. Check existing sandbox from database
-        project_info = await client.table('projects').select("sandbox").eq('project_id', project_id).single().execute()
-        existing_sandbox = project_info.data.get('sandbox') if project_info.data else None
+        # Get preview links
+        vnc_link = sandbox.get_preview_link(6080)
+        website_link = sandbox.get_preview_link(8080)
+        vnc_url = vnc_link.url if hasattr(vnc_link, 'url') else str(vnc_link).split("url='")[1].split("'")[0]
+        website_url = website_link.url if hasattr(website_link, 'url') else str(website_link).split("url='")[1].split("'")[0]
+        token = None
+        if hasattr(vnc_link, 'token'):
+            token = vnc_link.token
+        elif "token='" in str(vnc_link):
+            token = str(vnc_link).split("token='")[1].split("'")[0]
 
-        sandbox = None
-        sandbox_id = None
-        sandbox_pass = None
+        # Update project with sandbox info
+        update_result = await client.table('projects').update({
+            'sandbox': {
+                'id': sandbox_id, 'pass': sandbox_pass, 'vnc_preview': vnc_url,
+                'sandbox_url': website_url, 'token': token
+            }
+        }).eq('project_id', project_id).execute()
 
-        if existing_sandbox and existing_sandbox.get('id'):
-            sandbox_id = existing_sandbox['id']
-            sandbox_pass = existing_sandbox.get('pass')
-            try:
-                sandbox = daytona.get(sandbox_id)
-                # Verificamos que el puerto 6080 esté activo antes de reutilizar
-                test_url = f"http://{sandbox.get_hostname()}:6080"
-                import httpx
-                r = httpx.get(test_url, timeout=2)
-                if r.status_code != 200:
-                    logger.warning(f"Sandbox {sandbox_id} is not responding on 6080. Creating new one.")
-                    sandbox = None
-            except Exception as e:
-                logger.warning(f"Failed to fetch or connect to existing sandbox {sandbox_id}: {e}")
-                sandbox = None
-
-        if not sandbox:
-            sandbox_pass = str(uuid.uuid4())
-            sandbox = create_sandbox(sandbox_pass, project_id)
-            sandbox_id = sandbox.id
-            logger.info(f"Created new sandbox {sandbox_id} for project {project_id}")
-
-            # Get preview links
-            vnc_link = sandbox.get_preview_link(6080)
-            website_link = sandbox.get_preview_link(8080)
-            vnc_url = vnc_link.url if hasattr(vnc_link, 'url') else str(vnc_link).split("url='")[1].split("'")[0]
-            website_url = website_link.url if hasattr(website_link, 'url') else str(website_link).split("url='")[1].split("'")[0]
-            token = None
-            if hasattr(vnc_link, 'token'):
-                token = vnc_link.token
-            elif "token='" in str(vnc_link):
-                token = str(vnc_link).split("token='")[1].split("'")[0]
-
-            # Update project with sandbox info
-            update_result = await client.table('projects').update({
-                'sandbox': {
-                    'id': sandbox_id, 'pass': sandbox_pass, 'vnc_preview': vnc_url,
-                    'sandbox_url': website_url, 'token': token
-                }
-            }).eq('project_id', project_id).execute()
-
-            if not update_result.data:
-                logger.error(f"Failed to update project {project_id} with new sandbox {sandbox_id}")
-                raise Exception("Database update failed")
+        if not update_result.data:
+            logger.error(f"Failed to update project {project_id} with new sandbox {sandbox_id}")
+            raise Exception("Database update failed")
 
         # 4. Upload Files to Sandbox (if any)
         message_content = prompt
