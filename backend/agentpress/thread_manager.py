@@ -352,6 +352,7 @@ Here are the XML tools available with examples:
                         tools=openapi_tool_schemas,
                         tool_choice=tool_choice if processor_config.native_tool_calling else None,
                         stream=stream,
+                        run_id=run_id,
                         enable_thinking=enable_thinking,
                         reasoning_effort=reasoning_effort
                     )
