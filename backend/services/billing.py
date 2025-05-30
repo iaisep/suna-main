@@ -680,84 +680,24 @@ async def create_portal_session(
 async def get_subscription(
     current_user_id: str = Depends(get_current_user_id_from_jwt)
 ):
-    """Get the current subscription status for the current user, including scheduled changes."""
-    try:
-        # Get subscription from Stripe (this helper already handles filtering/cleanup)
-        subscription = await get_user_subscription(current_user_id)
-        # print("Subscription data for status:", subscription)
-        
-        if not subscription:
-            # Default to free tier status if no active subscription for our product
-            free_tier_id = config.STRIPE_FREE_TIER_ID
-            free_tier_info = SUBSCRIPTION_TIERS.get(free_tier_id)
-            return SubscriptionStatus(
-                status="no_subscription",
-                plan_name=free_tier_info.get('name', 'free') if free_tier_info else 'free',
-                price_id=free_tier_id,
-                minutes_limit=free_tier_info.get('minutes') if free_tier_info else 0
-            )
-        
-        # Extract current plan details
-        current_item = subscription['items']['data'][0]
-        current_price_id = current_item['price']['id']
-        current_tier_info = SUBSCRIPTION_TIERS.get(current_price_id)
-        if not current_tier_info:
-            # Fallback if somehow subscribed to an unknown price within our product
-             logger.warning(f"User {current_user_id} subscribed to unknown price {current_price_id}. Defaulting info.")
-             current_tier_info = {'name': 'unknown', 'minutes': 0}
-        
-        # Calculate current usage
-        db = DBConnection()
-        client = await db.client
-        current_usage = await calculate_monthly_usage(client, current_user_id)
-        
-        status_response = SubscriptionStatus(
-            status=subscription['status'], # 'active', 'trialing', etc.
-            plan_name=subscription['plan'].get('nickname') or current_tier_info['name'],
-            price_id=current_price_id,
-            current_period_end=datetime.fromtimestamp(current_item['current_period_end'], tz=timezone.utc),
-            cancel_at_period_end=subscription['cancel_at_period_end'],
-            trial_end=datetime.fromtimestamp(subscription['trial_end'], tz=timezone.utc) if subscription.get('trial_end') else None,
-            minutes_limit=current_tier_info['minutes'],
-            current_usage=round(current_usage, 2),
-            has_schedule=False # Default
-        )
+    """Bypass Stripe and return free plan for development or free tier usage."""
+    free_tier_id = config.STRIPE_FREE_TIER_ID
+    free_tier_info = SUBSCRIPTION_TIERS.get(free_tier_id, {"name": "Free", "minutes": 0})
 
-        # Check for an attached schedule (indicates pending downgrade)
-        schedule_id = subscription.get('schedule')
-        if schedule_id:
-            try:
-                schedule = stripe.SubscriptionSchedule.retrieve(schedule_id)
-                # Find the *next* phase after the current one
-                next_phase = None
-                current_phase_end = current_item['current_period_end']
-                
-                for phase in schedule.get('phases', []):
-                    # Check if this phase starts exactly when the current one ends
-                    if phase.get('start_date') == current_phase_end:
-                        next_phase = phase
-                        break # Found the immediate next phase
-
-                if next_phase:
-                    scheduled_item = next_phase['items'][0] # Assuming single item
-                    scheduled_price_id = scheduled_item['price'] # Price ID might be string here
-                    scheduled_tier_info = SUBSCRIPTION_TIERS.get(scheduled_price_id)
-                    
-                    status_response.has_schedule = True
-                    status_response.status = 'scheduled_downgrade' # Override status
-                    status_response.scheduled_plan_name = scheduled_tier_info.get('name', 'unknown') if scheduled_tier_info else 'unknown'
-                    status_response.scheduled_price_id = scheduled_price_id
-                    status_response.scheduled_change_date = datetime.fromtimestamp(next_phase['start_date'], tz=timezone.utc)
-                    
-            except Exception as schedule_error:
-                logger.error(f"Error retrieving or parsing schedule {schedule_id} for sub {subscription['id']}: {schedule_error}")
-                # Proceed without schedule info if retrieval fails
-
-        return status_response
-        
-    except Exception as e:
-        logger.exception(f"Error getting subscription status for user {current_user_id}: {str(e)}") # Use logger.exception
-        raise HTTPException(status_code=500, detail="Error retrieving subscription status.")
+    return SubscriptionStatus(
+        status="free",
+        plan_name=free_tier_info.get('name', 'free'),
+        price_id=free_tier_id,
+        minutes_limit=free_tier_info.get('minutes', 0),
+        current_usage=0.0,
+        current_period_end=datetime.now(tz=timezone.utc),
+        cancel_at_period_end=False,
+        trial_end=None,
+        has_schedule=False,
+        scheduled_plan_name=None,
+        scheduled_price_id=None,
+        scheduled_change_date=None
+    )
 
 @router.get("/check-status")
 async def check_status(
