@@ -170,6 +170,7 @@ class ThreadManager:
         reasoning_effort: Optional[str] = 'low',
         enable_context_manager: bool = True,
         generation: Optional[StatefulGenerationClient] = None,
+        agent_run_id: Optional[str] = None,  # <-- Añade este argumento
     ) -> Union[Dict[str, Any], AsyncGenerator]:
         """Run a conversation thread with LLM integration and tool execution.
 
@@ -258,7 +259,7 @@ Here are the XML tools available with examples:
         auto_continue_count = 0
 
         # Define inner function to handle a single run
-        async def _run_once(temp_msg=None):
+        async def _run_once(temp_msg=None, agent_run_id=None):  # <-- Añade aquí también
             try:
                 # Ensure processor_config is available in this scope
                 nonlocal processor_config
@@ -343,7 +344,7 @@ Here are the XML tools available with examples:
                               "tool_choice": tool_choice,
                               "tools": openapi_tool_schemas,
                             }
-                        )
+                    )
                     llm_response = await make_llm_api_call(
                         prepared_messages,
                         llm_model,
@@ -352,7 +353,7 @@ Here are the XML tools available with examples:
                         tools=openapi_tool_schemas,
                         tool_choice=tool_choice if processor_config.native_tool_calling else None,
                         stream=stream,
-                        run_id=agent_run_id,  # <-- Usa el agent_run_id único aquí
+                        run_id=agent_run_id,  # <-- Usa el agent_run_id real
                         enable_thinking=enable_thinking,
                         reasoning_effort=reasoning_effort
                     )
