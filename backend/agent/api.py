@@ -625,7 +625,7 @@ async def initiate_agent_with_files(
         asyncio.create_task(generate_and_update_project_name(project_id=project_id, prompt=prompt))
         # 3. Create Sandbox 
         sandbox_id = "80f034f1-c388-4b08-9115-f19a45b3331f"
-        sandbox_pass = "no_importa"  # Si es necesario puedes dejar el campo vacío o fijo
+        sandbox = await get_or_start_sandbox(sandbox_id)
         logger.info(f"Created new sandbox {sandbox_id} for project {project_id}")
 
         # Get preview links
