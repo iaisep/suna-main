@@ -18,6 +18,7 @@ from openai import OpenAIError
 import litellm
 from utils.logger import logger
 from utils.config import config
+from backend.services import redis as redis_service
 
 # litellm.set_verbose=True
 litellm.modify_params=True
@@ -311,7 +312,8 @@ async def make_llm_api_call(
             logger.debug(f"Response: {response}")
 
             logger.info(f"Respuesta generada por LLM para run : {response}")
-            await redis.rpush(f"agent_run:{run_id}:responses", response)
+            redis_client = await redis_service.get_client()
+            await redis_client.rpush(f"agent_run:{run_id}:responses", response)
             logger.info(f"Respuesta guardada en Redis para run {run_id}")
 
             return response
