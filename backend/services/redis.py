@@ -90,62 +90,91 @@ async def get_client():
 # Basic Redis operations
 async def set(key: str, value: str, ex: int = None):
     """Set a Redis key."""
+    logger.debug(f"[Redis] SET key={key} ex={ex}")
     redis_client = await get_client()
-    return await redis_client.set(key, value, ex=ex)
+    result = await redis_client.set(key, value, ex=ex)
+    logger.debug(f"[Redis] SET result for key={key}: {result}")
+    return result
 
 
 async def get(key: str, default: str = None):
     """Get a Redis key."""
+    logger.debug(f"[Redis] GET key={key}")
     redis_client = await get_client()
     result = await redis_client.get(key)
+    logger.debug(f"[Redis] GET result for key={key}: {result}")
     return result if result is not None else default
 
 
 async def delete(key: str):
     """Delete a Redis key."""
+    logger.debug(f"[Redis] DELETE key={key}")
     redis_client = await get_client()
-    return await redis_client.delete(key)
+    result = await redis_client.delete(key)
+    logger.debug(f"[Redis] DELETE result for key={key}: {result}")
+    return result
 
 
 async def publish(channel: str, message: str):
     """Publish a message to a Redis channel."""
+    logger.debug(f"[Redis] PUBLISH channel={channel} message={message[:100]}")
     redis_client = await get_client()
-    return await redis_client.publish(channel, message)
+    result = await redis_client.publish(channel, message)
+    logger.debug(f"[Redis] PUBLISH result for channel={channel}: {result}")
+    return result
 
 
 async def create_pubsub():
     """Create a Redis pubsub object."""
+    logger.debug(f"[Redis] Creating pubsub object")
     redis_client = await get_client()
-    return redis_client.pubsub()
+    pubsub = redis_client.pubsub()
+    logger.debug(f"[Redis] Pubsub object created")
+    return pubsub
 
 
 # List operations
 async def rpush(key: str, *values: Any):
     """Append one or more values to a list."""
+    logger.debug(f"[Redis] RPUSH key={key} values={values}")
     redis_client = await get_client()
-    return await redis_client.rpush(key, *values)
+    result = await redis_client.rpush(key, *values)
+    logger.debug(f"[Redis] RPUSH result for key={key}: {result}")
+    return result
 
 
 async def lrange(key: str, start: int, end: int) -> List[str]:
     """Get a range of elements from a list."""
+    logger.debug(f"[Redis] LRANGE key={key} start={start} end={end}")
     redis_client = await get_client()
-    return await redis_client.lrange(key, start, end)
+    result = await redis_client.lrange(key, start, end)
+    logger.debug(f"[Redis] LRANGE result for key={key}: {result}")
+    return result
 
 
 async def llen(key: str) -> int:
     """Get the length of a list."""
+    logger.debug(f"[Redis] LLEN key={key}")
     redis_client = await get_client()
-    return await redis_client.llen(key)
+    result = await redis_client.llen(key)
+    logger.debug(f"[Redis] LLEN result for key={key}: {result}")
+    return result
 
 
 # Key management
 async def expire(key: str, time: int):
     """Set a key's time to live in seconds."""
+    logger.debug(f"[Redis] EXPIRE key={key} time={time}")
     redis_client = await get_client()
-    return await redis_client.expire(key, time)
+    result = await redis_client.expire(key, time)
+    logger.debug(f"[Redis] EXPIRE result for key={key}: {result}")
+    return result
 
 
 async def keys(pattern: str) -> List[str]:
     """Get keys matching a pattern."""
+    logger.debug(f"[Redis] KEYS pattern={pattern}")
     redis_client = await get_client()
-    return await redis_client.keys(pattern)
+    result = await redis_client.keys(pattern)
+    logger.debug(f"[Redis] KEYS result for pattern={pattern}: {result}")
+    return result
