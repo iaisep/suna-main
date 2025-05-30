@@ -278,7 +278,6 @@ async def make_llm_api_call(
         LLMRetryError: If API call fails after retries
         LLMError: For other API-related errors
     """
-    # debug <timestamp>.json messages
     logger.info(f"Making LLM API call to model: {model_name} (Thinking: {enable_thinking}, Effort: {reasoning_effort})")
     logger.info(f"📡 API Call: Using model {model_name}")
     params = prepare_params(
@@ -301,6 +300,10 @@ async def make_llm_api_call(
     for attempt in range(MAX_RETRIES):
         try:
             logger.debug(f"Attempt {attempt + 1}/{MAX_RETRIES}")
+            # Log especial para OpenAI
+            if "openai" in model_name.lower():
+                logger.info(f"🔑 Conectando a OpenAI con modelo: {model_name} (API base: {api_base or 'default'})")
+                logger.debug(f"Parámetros enviados a OpenAI: {json.dumps(params, indent=2, default=str)}")
             # logger.debug(f"API request parameters: {json.dumps(params, indent=2)}")
 
             response = await litellm.acompletion(**params)
