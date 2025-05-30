@@ -309,6 +309,11 @@ async def make_llm_api_call(
             response = await litellm.acompletion(**params)
             logger.debug(f"Successfully received API response from {model_name}")
             logger.debug(f"Response: {response}")
+
+            logger.info(f"Respuesta generada por LLM para run {run_id}: {response}")
+            await redis.rpush(f"agent_run:{run_id}:responses", response)
+            logger.info(f"Respuesta guardada en Redis para run {run_id}")
+
             return response
 
         except (litellm.exceptions.RateLimitError, OpenAIError, json.JSONDecodeError) as e:
