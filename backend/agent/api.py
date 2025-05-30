@@ -623,9 +623,10 @@ async def initiate_agent_with_files(
 
         # Trigger Background Naming Task
         asyncio.create_task(generate_and_update_project_name(project_id=project_id, prompt=prompt))
-        # 3. Create Sandbox 
-        sandbox_id = "80f034f1-c388-4b08-9115-f19a45b3331f"
-        sandbox = await get_or_start_sandbox(sandbox_id)
+        # 3. Create Sandbox
+        sandbox_pass = str(uuid.uuid4())
+        sandbox = create_sandbox(sandbox_pass, project_id)
+        sandbox_id = sandbox.id
         logger.info(f"Created new sandbox {sandbox_id} for project {project_id}")
 
         # Get preview links
