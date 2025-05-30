@@ -345,14 +345,14 @@ Here are the XML tools available with examples:
                             }
                         )
                     llm_response = await make_llm_api_call(
-                        prepared_messages, # Pass the potentially modified messages
+                        prepared_messages,  # Pass the potentially modified messages
                         llm_model,
                         temperature=llm_temperature,
                         max_tokens=llm_max_tokens,
                         tools=openapi_tool_schemas,
                         tool_choice=tool_choice if processor_config.native_tool_calling else None,
                         stream=stream,
-                        run_id=run_id,
+                        run_id=thread_id,  # <-- Usa thread_id si no tienes un run_id único
                         enable_thinking=enable_thinking,
                         reasoning_effort=reasoning_effort
                     )
