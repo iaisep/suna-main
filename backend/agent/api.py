@@ -642,7 +642,7 @@ async def initiate_agent_with_files(
         # Update project with sandbox info
         update_result = await client.table('projects').update({
             'sandbox': {
-                'id': sandbox_id, 'pass': sandbox_pass, 'vnc_preview': vnc_url,
+                'id': sandbox_id,  'vnc_preview': vnc_url,
                 'sandbox_url': website_url, 'token': token
             }
         }).eq('project_id', project_id).execute()
