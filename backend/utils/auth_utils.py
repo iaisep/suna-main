@@ -181,7 +181,7 @@ async def verify_thread_access(client, thread_id: str, user_id: str):
     account_id = thread_data.get('account_id')
     # When using service role, we need to manually check account membership instead of using current_user_account_role
     if account_id:
-        account_user_result = await client.schema('basejump').from_('account_user').select('account_role').eq('user_id', user_id).eq('account_id', account_id).execute()
+        account_user_result = await client.schema('public').from_('account_user_view').select('account_role').eq('user_id', user_id).eq('account_id', account_id).execute()
         if account_user_result.data and len(account_user_result.data) > 0:
             return True
     raise HTTPException(status_code=403, detail="Not authorized to access this thread")
