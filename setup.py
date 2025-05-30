@@ -6,6 +6,8 @@ import platform
 import subprocess
 from getpass import getpass
 import re
+import socket
+import logging
 
 # ANSI colors for pretty output
 class Colors:
@@ -654,6 +656,25 @@ def install_dependencies():
         print_info("You may need to install them manually.")
         return False
 
+# Logger for RabbitMQ checks
+rabbit_logger = logging.getLogger("RabbitMQSetup")
+logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
+
+def check_rabbitmq_running(rabbitmq_host='localhost', rabbitmq_port=5672):
+    """Check if RabbitMQ is running and accessible."""
+    rabbit_logger.info(f"Checking RabbitMQ at {rabbitmq_host}:{rabbitmq_port}...")
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(3)
+    try:
+        sock.connect((rabbitmq_host, rabbitmq_port))
+        rabbit_logger.info("RabbitMQ is accessible.")
+        return True
+    except Exception as e:
+        rabbit_logger.error(f"RabbitMQ is NOT accessible: {e}")
+        return False
+    finally:
+        sock.close()
+
 def start_suna():
     """Start Suna using Docker Compose or manual startup"""
     print_info("You can start Suna using either Docker Compose or by manually starting the frontend, backend and worker.")
@@ -720,7 +741,12 @@ def start_suna():
             # Wait for services to be ready
             print_info("Waiting for services to start...")
             time.sleep(10)  # Give services some time to start
-            
+
+            # Check if RabbitMQ is running (log result)
+            rabbitmq_host = 'rabbitmq'
+            rabbitmq_port = 5672
+            check_rabbitmq_running(rabbitmq_host, rabbitmq_port)
+
             # Check if services are running
             result = subprocess.run(
                 ['docker', 'compose', 'ps'],
@@ -748,6 +774,11 @@ def start_suna():
         print_info("4. Start the worker with poetry run python3.11 -m dramatiq run_agent_background")
         print_warning("Note: Redis and RabbitMQ must be running before starting the backend")
         print_info("Detailed instructions will be provided at the end of setup")
+        
+        # Check if RabbitMQ is running (log result)
+        rabbitmq_host = 'localhost'
+        rabbitmq_port = 5672
+        check_rabbitmq_running(rabbitmq_host, rabbitmq_port)
         
         return use_docker
 
